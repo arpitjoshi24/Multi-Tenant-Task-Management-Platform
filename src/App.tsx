@@ -1,58 +1,38 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
-
-// Layout Components
 import AppLayout from './components/layout/AppLayout';
-
-// Auth Pages
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
-
-// Dashboard Pages
 import Dashboard from './pages/dashboard/Dashboard';
-
-// Task Pages
 import TaskList from './pages/tasks/TaskList';
 import CreateTask from './pages/tasks/CreateTask';
-
-// Organization Pages
 import MembersList from './pages/organization/MembersList';
-
-// Calendar Page
 import Calendar from './pages/calender/Calender';
-
-// Analytics Page
 import Analytics from './pages/analytics/Analytics';
-
-// Settings Pages
 import Settings from './pages/settings/Settings';
 import Profile from './pages/profile/Profile';
+import EditTask from './pages/tasks/EditTask';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          
-          {/* Protected Routes */}
           <Route path="/" element={<AppLayout />}>
             <Route index element={<Navigate to="/dashboard\" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="tasks" element={<TaskList />} />
             <Route path="tasks/create" element={<CreateTask />} />
+             <Route path="tasks/edit/:id" element={<EditTask />} />
             <Route path="members" element={<MembersList />} />
             <Route path="calendar" element={<Calendar />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} />
             <Route path="profile" element={<Profile />} />
           </Route>
-          
-          {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/\" replace />} />
         </Routes>
       </Router>

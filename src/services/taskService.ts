@@ -4,7 +4,7 @@ import {
   CreateTaskFormInputs, 
   TaskStatistics, 
   TaskStatus, 
-  ApiResponse 
+ 
 } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -26,7 +26,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const getTasks = async (): Promise<Task[]> => {
+export const getTask = async (): Promise<Task[]> => {
   try {
     const response = await api.get('/tasks');
     return response.data;
@@ -37,6 +37,7 @@ export const getTasks = async (): Promise<Task[]> => {
     throw new Error('Network error while fetching tasks');
   }
 };
+
 
 export const getTaskById = async (id: string): Promise<Task> => {
   try {

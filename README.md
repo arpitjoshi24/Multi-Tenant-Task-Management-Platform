@@ -65,7 +65,7 @@ TaskFlow is a modern, multi-tenant task management platform built with React, No
    
    # Or start them separately
    npm run dev        # Frontend only
-   node index/server.js     # Backend only
+   node server/index.js     # Backend only
    ```
 
 ### Docker Deployment

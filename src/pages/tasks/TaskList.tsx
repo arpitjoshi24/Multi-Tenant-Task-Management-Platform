@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
-  getTasks, 
+  getTask, 
   updateTaskStatus,
   deleteTask
 } from '../../services/taskService';
@@ -39,7 +39,7 @@ const TaskList: React.FC = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const tasksData = await getTasks();
+      const tasksData = await getTask();
       setTasks(tasksData);
       setError(null);
     } catch (err) {
@@ -253,12 +253,13 @@ const TaskList: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {getStatusIcon(task.status)}
-                        <span className="ml-1.5 text-sm text-gray-900">
-                          {task.status
-                            .split('_')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                            .join(' ')}
-                        </span>
+                      <span className="ml-1.5 text-sm text-gray-900">
+  {task.status
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')}
+</span>
+
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -310,13 +311,13 @@ const TaskList: React.FC = () => {
                         
                         {isManagerOrAdmin && (
                           <>
-                            <Link
-                              to={`/tasks/${task._id}/edit`}
-                              className="text-blue-600 hover:text-blue-900"
-                              title="Edit task"
-                            >
-                              <Edit className="h-5 w-5" />
-                            </Link>
+                           <Link
+  to={`/tasks/edit/${task._id}`}  
+  className="text-blue-600 hover:text-blue-900"
+  title="Edit task"
+>
+  <Edit className="h-5 w-5" />
+</Link>
                             <button
                               onClick={() => handleDeleteTask(task._id)}
                               className="text-red-600 hover:text-red-900"

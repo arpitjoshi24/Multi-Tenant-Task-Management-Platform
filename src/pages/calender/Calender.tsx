@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, parseISO } from 'date-fns';
 import { ChevronLeft, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import { Task } from '../../types';
-import { getTasks } from '../../services/taskService';
+import { getTask } from '../../services/taskService';
 
 const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -17,7 +17,7 @@ const Calendar: React.FC = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const tasksData = await getTasks();
+      const tasksData = await getTask();
       setTasks(tasksData);
       setError(null);
     } catch (err) {

@@ -297,7 +297,7 @@ const MembersList: React.FC = () => {
         </div>
       )}
       
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+      <div className="bg-white shadow-sm rounded-lg ">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold flex items-center">
             <Users className="h-5 w-5 mr-2" />
@@ -310,14 +310,14 @@ const MembersList: React.FC = () => {
             <p className="text-gray-500">No members found. Invite members to get started.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-gray-200 ">
             {members.map((member) => (
               <li key={member._id} className="px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white">
                     {member.name.charAt(0).toUpperCase()}
                   </div>
-                  <div className="ml-3">
+                  <div className="ml-3 ">
                     <p className="text-sm font-medium text-gray-900">{member.name}</p>
                     <p className="text-sm text-gray-500">{member.email}</p>
                   </div>
