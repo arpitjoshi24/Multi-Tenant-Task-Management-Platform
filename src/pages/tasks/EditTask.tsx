@@ -4,9 +4,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { getTask, updateTask } from '../../services/taskService';
+import { getTaskById, updateTask } from '../../services/taskService';
 import { getOrganizationMembers } from '../../services/organizationService';
-import { CreateTaskFormInputs, Task, TaskCategory, TaskPriority, User } from '../../types';
+import { CreateTaskFormInputs, TaskCategory, TaskPriority, User } from '../../types';
 
 const taskSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -55,7 +55,7 @@ const EditTask: React.FC = () => {
         
         // Fetch in parallel for better performance
         const [taskData, membersData] = await Promise.all([
-          getTask(id!),
+          getTaskById(id!),
           getOrganizationMembers()
         ]);
         

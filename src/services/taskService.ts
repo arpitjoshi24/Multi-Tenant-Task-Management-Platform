@@ -4,7 +4,6 @@ import {
   CreateTaskFormInputs, 
   TaskStatistics, 
   TaskStatus, 
- 
 } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -37,7 +36,6 @@ export const getTask = async (): Promise<Task[]> => {
     throw new Error('Network error while fetching tasks');
   }
 };
-
 
 export const getTaskById = async (id: string): Promise<Task> => {
   try {
