@@ -3,10 +3,10 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckSquare, Loader2 } from 'lucide-react';
+import { CheckSquare, Loader2, AlertCircle, Check, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { RegisterFormInputs } from '../../types';
-import { checkInvitation } from '../../services/authService';
+import { RegisterFormInputs, UserRole } from '../../types';
+import { checkInvitation, checkOrganizationCode } from '../../services/authService';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -16,6 +16,8 @@ const registerSchema = z.object({
   organizationName: z.string().optional(),
   joinExisting: z.boolean().default(false),
   inviteToken: z.string().optional(),
+  organizationCode: z.string().optional(),
+  role: z.enum([UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER]).optional(),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -27,6 +29,14 @@ const registerSchema = z.object({
 }, {
   message: "Organization name is required when creating a new organization",
   path: ['organizationName'],
+}).refine(data => {
+  if (data.joinExisting && !data.inviteToken) {
+    return data.organizationCode && data.organizationCode.length > 0;
+  }
+  return true;
+}, {
+  message: "Organization code is required when joining without an invitation",
+  path: ['organizationCode'],
 });
 
 const Register: React.FC = () => {
@@ -39,6 +49,8 @@ const Register: React.FC = () => {
     role?: string;
   } | null>(null);
   const [checkingInvite, setCheckingInvite] = useState(false);
+  const [checkingCode, setCheckingCode] = useState(false);
+  const [codeValid, setCodeValid] = useState(false);
 
   const {
     register,
@@ -46,16 +58,18 @@ const Register: React.FC = () => {
     formState: { errors },
     setValue,
     watch,
+    
   } = useForm<RegisterFormInputs>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       joinExisting: false,
+      role: UserRole.MEMBER,
     }
   });
   
   const joinExisting = watch('joinExisting');
+  const organizationCode = watch('organizationCode');
 
-  // Check for invite token in URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
@@ -72,6 +86,7 @@ const Register: React.FC = () => {
             });
             setValue('inviteToken', token);
             setValue('joinExisting', true);
+            setValue('role', response.role as UserRole);
           }
         })
         .catch(error => {
@@ -82,6 +97,27 @@ const Register: React.FC = () => {
         });
     }
   }, [location.search, setValue]);
+
+  useEffect(() => {
+    if (organizationCode) {
+      const validateCode = async () => {
+        setCheckingCode(true);
+        try {
+          const isValid = await checkOrganizationCode(organizationCode);
+          setCodeValid(isValid);
+        } catch (err) {
+          setCodeValid(false);
+        } finally {
+          setCheckingCode(false);
+        }
+      };
+
+      const timeoutId = setTimeout(validateCode, 500);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setCodeValid(false);
+    }
+  }, [organizationCode]);
 
   const onSubmit = async (data: RegisterFormInputs) => {
     try {
@@ -123,9 +159,7 @@ const Register: React.FC = () => {
           <div className="bg-green-50 border-l-4 border-green-500 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+                <Check className="h-5 w-5 text-green-500" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-green-700">
@@ -141,9 +175,7 @@ const Register: React.FC = () => {
           <div className="bg-red-50 border-l-4 border-red-500 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
+                <AlertCircle className="h-5 w-5 text-red-500" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-red-700">{error}</p>
@@ -155,9 +187,7 @@ const Register: React.FC = () => {
                     className="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                   >
                     <span className="sr-only">Dismiss</span>
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
               </div>
@@ -251,27 +281,60 @@ const Register: React.FC = () => {
                   {...register('joinExisting')}
                 />
                 <label htmlFor="joinExisting" className="ml-2 block text-sm text-gray-900">
-                  Join an existing organization with an invite code
+                  Join an existing organization
                 </label>
               </div>
 
               {joinExisting ? (
-                <div>
-                  <label htmlFor="inviteToken" className="block text-sm font-medium text-gray-700">
-                    Invitation Code
-                  </label>
-                  <input
-                    id="inviteToken"
-                    type="text"
-                    className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.inviteToken ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
-                    placeholder="Enter your invitation code"
-                    {...register('inviteToken')}
-                  />
-                  {errors.inviteToken && (
-                    <p className="mt-1 text-sm text-red-600">{errors.inviteToken.message}</p>
-                  )}
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="organizationCode" className="block text-sm font-medium text-gray-700">
+                      Organization Code
+                    </label>
+                    <div className="mt-1 relative">
+                      <input
+                        id="organizationCode"
+                        type="text"
+                        className={`input pr-10 ${errors.organizationCode ? 'border-red-300' : ''}`}
+                        placeholder="Enter organization code"
+                        {...register('organizationCode')}
+                      />
+                      {checkingCode ? (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                          <Loader2 className="h-4 w-4 text-gray-400 animate-spin" />
+                        </div>
+                      ) : organizationCode && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                          {codeValid ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {errors.organizationCode && (
+                      <p className="mt-1 text-sm text-red-600">{errors.organizationCode.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                      Role
+                    </label>
+                    <select
+                      id="role"
+                      className={`mt-1 input ${errors.role ? 'border-red-300' : ''}`}
+                      {...register('role')}
+                    >
+                      <option value={UserRole.MEMBER}>Member</option>
+                      <option value={UserRole.MANAGER}>Manager</option>
+                      <option value={UserRole.ADMIN}>Admin</option>
+                    </select>
+                    {errors.role && (
+                      <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div>
@@ -281,9 +344,7 @@ const Register: React.FC = () => {
                   <input
                     id="organizationName"
                     type="text"
-                    className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.organizationName ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                    className={`mt-1 input ${errors.organizationName ? 'border-red-300' : ''}`}
                     placeholder="Your company or team name"
                     {...register('organizationName')}
                   />

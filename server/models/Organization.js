@@ -10,15 +10,22 @@ const OrganizationSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  // Add any additional fields for organization settings
+  code: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+  },
   settings: {
     theme: {
       type: String,
       default: 'light',
     },
-    // Add more settings as needed
   },
 }, { timestamps: true });
+
+// Index for efficient code lookups
+OrganizationSchema.index({ code: 1 });
 
 const Organization = mongoose.model('Organization', OrganizationSchema);
 

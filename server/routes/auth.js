@@ -4,13 +4,23 @@ import User from '../models/User.js';
 import Organization from '../models/Organization.js';
 import Invitation from '../models/Invitation.js';
 import { authenticate } from '../middleware/auth.js';
+import crypto from 'crypto';
 
 const router = express.Router();
 
 // Register a new user
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, organizationName, joinExisting, inviteToken } = req.body;
+    const { 
+      name, 
+      email, 
+      password, 
+      organizationName, 
+      joinExisting, 
+      inviteToken,
+      organizationCode,
+      role 
+    } = req.body;
     
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -19,41 +29,57 @@ router.post('/register', async (req, res) => {
     }
     
     let organizationId;
+    let userRole = role;
     
-    if (joinExisting && inviteToken) {
-      // Join an existing organization with invitation
-      const invitation = await Invitation.findOne({ 
-        token: inviteToken,
-        status: 'pending',
-        expiresAt: { $gt: new Date() }
-      });
-      
-      if (!invitation) {
-        return res.status(400).json({ message: 'Invalid or expired invitation token' });
+    if (joinExisting) {
+      if (inviteToken) {
+        // Join via invitation
+        const invitation = await Invitation.findOne({ 
+          token: inviteToken,
+          status: 'pending',
+          expiresAt: { $gt: new Date() }
+        });
+        
+        if (!invitation) {
+          return res.status(400).json({ message: 'Invalid or expired invitation token' });
+        }
+        
+        if (invitation.email.toLowerCase() !== email.toLowerCase()) {
+          return res.status(400).json({ message: 'Invitation was sent to a different email address' });
+        }
+        
+        organizationId = invitation.organizationId;
+        userRole = invitation.role;
+        
+        // Update invitation status
+        invitation.status = 'accepted';
+        await invitation.save();
+      } else if (organizationCode) {
+        // Join via organization code
+        const organization = await Organization.findOne({ code: organizationCode });
+        if (!organization) {
+          return res.status(400).json({ message: 'Invalid organization code' });
+        }
+        organizationId = organization._id;
+      } else {
+        return res.status(400).json({ 
+          message: 'Either provide an organization code or a valid invitation token' 
+        });
       }
-      
-      if (invitation.email.toLowerCase() !== email.toLowerCase()) {
-        return res.status(400).json({ message: 'Invitation was sent to a different email address' });
-      }
-      
-      organizationId = invitation.organizationId;
-      
-      // Update invitation status
-      invitation.status = 'accepted';
-      await invitation.save();
-      
-    } else if (!joinExisting && organizationName) {
+    } else if (organizationName) {
       // Create a new organization
+      const code = crypto.randomBytes(6).toString('hex').toUpperCase();
       const newOrganization = new Organization({
         name: organizationName,
+        code,
       });
       
       const savedOrganization = await newOrganization.save();
       organizationId = savedOrganization._id;
-      
+      userRole = 'admin'; // First user is always admin
     } else {
       return res.status(400).json({ 
-        message: 'Either provide an organization name or a valid invitation token' 
+        message: 'Either provide an organization name or join an existing organization' 
       });
     }
     
@@ -63,11 +89,7 @@ router.post('/register', async (req, res) => {
       email,
       password,
       organizationId,
-      // If creating a new organization, set role to admin
-      // If joining via invitation, role is determined by invitation
-      role: joinExisting && inviteToken 
-        ? (await Invitation.findOne({ token: inviteToken })).role 
-        : 'admin'
+      role: userRole
     });
     
     const savedUser = await newUser.save();
@@ -91,6 +113,18 @@ router.post('/register', async (req, res) => {
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Server error during registration' });
+  }
+});
+
+// Check organization code
+router.post('/check-organization-code', async (req, res) => {
+  try {
+    const { code } = req.body;
+    const organization = await Organization.findOne({ code });
+    res.json({ valid: !!organization });
+  } catch (error) {
+    console.error('Error checking organization code:', error);
+    res.status(500).json({ message: 'Server error while checking organization code' });
   }
 });
 

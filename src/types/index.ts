@@ -24,6 +24,10 @@ export interface Organization {
   _id: string;
   name: string;
   description?: string;
+  code: string;
+  settings?: {
+    theme: 'light' | 'dark';
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -58,7 +62,11 @@ export interface Task {
   priority: TaskPriority;
   status: TaskStatus;
   dueDate: string;
-  assignedTo?: string;
+  assignedTo?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
   createdBy: string;
   organizationId: string;
   createdAt: string;
@@ -87,6 +95,8 @@ export interface TaskStatistics {
   overdue: number;
   byCategory: Record<TaskCategory, number>;
   byPriority: Record<TaskPriority, number>;
+  tasksByUser?: Record<string, number>;
+  completedTasksByUser?: Record<string, number>;
 }
 
 // Form input types
@@ -103,6 +113,8 @@ export interface RegisterFormInputs {
   organizationName?: string;
   joinExisting: boolean;
   inviteToken?: string;
+  organizationCode?: string;
+  role?: UserRole;
 }
 
 export interface CreateTaskFormInputs {

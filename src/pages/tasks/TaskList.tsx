@@ -12,11 +12,12 @@ import {
   CheckCircle, 
   Clock, 
   AlertCircle,
-  XCircle,
+  
   Edit,
   Trash2,
   Filter,
-  PlusCircle
+  PlusCircle,
+  User
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -228,6 +229,9 @@ const TaskList: React.FC = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Category
                   </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Assigned To
+                  </th>
                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
@@ -267,6 +271,30 @@ const TaskList: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {task.category.charAt(0).toUpperCase() + task.category.slice(1)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {task.assignedTo ? (
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary-700">
+                              {task.assignedTo.name?.charAt(0)}
+                            </span>
+                          </div>
+                          <div className="ml-2">
+                            <div className="text-sm font-medium text-gray-900">
+                              {task.assignedTo.name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {task.assignedTo.email}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500 flex items-center">
+                          <User className="h-4 w-4 mr-1" />
+                          Unassigned
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">

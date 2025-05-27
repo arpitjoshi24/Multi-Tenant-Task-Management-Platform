@@ -93,3 +93,12 @@ export const checkInvitation = async (token: string): Promise<{
     throw new Error('Network error validating invitation');
   }
 };
+
+export const checkOrganizationCode = async (code: string): Promise<boolean> => {
+  try {
+    const response = await api.post('/auth/check-organization-code', { code });
+    return response.data.valid;
+  } catch (error) {
+    return false;
+  }
+};

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
@@ -20,6 +20,16 @@ import CreateTask from './pages/tasks/CreateTask';
 // Organization Pages
 import MembersList from './pages/organization/MembersList';
 
+// Calendar Page
+import Calendar from './pages/calender/Calender';
+
+// Analytics Page
+import Analytics from './pages/analytics/Analytics';
+
+// Settings Pages
+import Settings from './pages/settings/Settings';
+import Profile from './pages/profile/Profile';
+
 function App() {
   return (
     <AuthProvider>
@@ -36,6 +46,10 @@ function App() {
             <Route path="tasks" element={<TaskList />} />
             <Route path="tasks/create" element={<CreateTask />} />
             <Route path="members" element={<MembersList />} />
+            <Route path="calendar" element={<Calendar />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
           
           {/* Fallback Route */}
@@ -69,4 +83,4 @@ function App() {
   );
 }
 
-export default App;
+export default App
